@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal Adaptations Quiz</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 24px 16px 48px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; }
+
+    /* Header card */
+    .header-card {
+      background: white;
+      border-radius: 12px;
+      border-top: 10px solid #4CAF50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 28px 32px;
+      margin-bottom: 16px;
+    }
+    .header-label {
+      font-size: 13px;
+      color: #5f6368;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .header-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #202124;
+      margin-bottom: 8px;
+    }
+    .header-desc {
+      font-size: 15px;
+      color: #5f6368;
+    }
+    .score-banner {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      display: none;
+    }
+
+    /* Question card */
+    .q-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      border: 2px solid transparent;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    }
+    .q-card.correct { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,0.4); }
+    .q-card.wrong   { border-color: #E91E63; box-shadow: 0 2px 8px rgba(233,30,99,0.3); }
+
+    /* Image area */
+    .q-img-wrap {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+    }
+    .q-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .q-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      color: white;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .q-result-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      color: white;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+    }
+
+    /* Content */
+    .q-body { padding: 20px 24px 24px; }
+    .q-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #202124;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* Options */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 2px solid #dadce0;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .option:hover { border-color: #aaa; background: #f8f8f8; }
+    .option.selected { background: #e8f0fe; }
+    .option.correct-ans { background: #e8f5e9 !important; border-color: #4CAF50 !important; }
+    .option.wrong-ans   { background: #fce4ec !important; border-color: #E91E63 !important; }
+
+    .radio {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #dadce0;
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .radio-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: white;
+      display: none;
+    }
+    .option.selected .radio-dot { display: block; }
+
+    .opt-label {
+      font-size: 15px;
+      color: #202124;
+    }
+    .option.selected .opt-label { font-weight: 600; }
+    .option.correct-ans .opt-label { color: #2e7d32; font-weight: 600; }
+    .option.wrong-ans   .opt-label { color: #c62828; }
+
+    .correct-hint {
+      margin-top: 12px;
+      padding: 8px 14px;
+      background: #e8f5e9;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #2e7d32;
+      font-weight: 500;
+      display: none;
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .btn-submit {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(76,175,80,0.4);
+      letter-spacing: 0.5px;
+    }
+    .btn-submit:hover { background: #43a047; }
+    .btn-reset {
+      background: white;
+      color: #4CAF50;
+      border: 2px solid #4CAF50;
+      border-radius: 8px;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+    }
+    .btn-reset:hover { background: #f1f8f1; }
+    .progress-label {
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header-card">
+    <div class="header-label">🌿 Science · Animal Adaptations</div>
+    <div class="header-title">Animal Adaptations Quiz</div>
+    <div class="header-desc">Match each scenario to the correct adaptation term. Choose the best answer for each question.</div>
+    <div class="score-banner" id="scoreBanner"></div>
+  </div>
+
+  <!-- Questions injected by JS -->
+  <div id="questions"></div>
+
+  <!-- Bottom -->
+  <div class="bottom-bar">
+    <button class="btn-submit" id="btnSubmit" onclick="submitQuiz()">Submit Quiz</button>
+    <button class="btn-reset" id="btnReset" onclick="resetQuiz()">Try Again 🔄</button>
+    <span class="progress-label" id="progressLabel">0 of 6 answered</span>
+  </div>
+
+</div>
+
+<script>
+  const QUESTIONS = [
+    {
+      id: 1,
+      scenario: "Bears adapt to the cold winter climate by sleeping more.",
+      emoji: "🐻",
+      bg: "#e8f4fd",
+      accent: "#2196F3",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Ours_brun_parcanimalierpyrenees_1.jpg/320px-Ours_brun_parcanimalierpyrenees_1.jpg",
+      answer: "Hibernate"
+    },
+    {
+      id: 2,
+      scenario: "Birds fly south for the winter.",
+      emoji: "🐦",
+      bg: "#fff8e1",
+      accent: "#FF9800",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/CanadaGoose_migrating.jpg/320px-CanadaGoose_migrating.jpg",
+      answer: "Migrate"
+    },
+    {
+      id: 3,
+      scenario: "The king snake tricks its enemies by looking like the deadly coral snake.",
+      emoji: "🐍",
+      bg: "#fce4ec",
+      accent: "#E91E63",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Eastern_Kingsnake_2.jpg/320px-Eastern_Kingsnake_2.jpg",
+      answer: "Mimicry"
+    },
+    {
+      id: 4,
+      scenario: "The snow hare blends in with its surroundings.",
+      emoji: "🐇",
+      bg: "#e8f5e9",
+      accent: "#4CAF50",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Lepus_americanus_5459_cropped.jpg/320px-Lepus_americanus_5459_cropped.jpg",
+      answer: "Camouflage"
+    },
+    {
+      id: 5,
+      scenario: "Changes in an animal's habitat are usually the cause for this.",
+      emoji: "🌍",
+      bg: "#f3e5f5",
+      accent: "#9C27B0",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Rainforest_Fatu_Hiva.jpg/320px-Rainforest_Fatu_Hiva.jpg",
+      answer: "Adaptation"
+    },
+    {
+      id: 6,
+      scenario: "Desert plants store water in their stems and leaves.",
+      emoji: "🌵",
+      bg: "#fff3e0",
+      accent: "#FF5722",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Cactus_-_Arizona.jpg/320px-Cactus_-_Arizona.jpg",
+      answer: "Structural Adaptation"
+    }
+  ];
+
+  const OPTIONS = ["Hibernate", "Adaptation", "Mimicry", "Migrate", "Camouflage", "Structural Adaptation"];
+  const answers = {};
+  let submitted = false;
+
+  // Build questions HTML
+  function buildQuestions() {
+    const container = document.getElementById('questions');
+    container.innerHTML = '';
+
+    QUESTIONS.forEach((q, idx) => {
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.id = 'card-' + q.id;
+
+      // Image wrap
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'q-img-wrap';
+      imgWrap.style.background = q.bg;
+
+      const img = document.createElement('img');
+      img.src = q.image;
+      img.alt = q.scenario;
+      img.onerror = function() {
+        imgWrap.innerHTML = '<span style="font-size:72px;opacity:0.7">' + q.emoji + '</span>';
+        // Re-add badges
+        imgWrap.appendChild(badge);
+        imgWrap.appendChild(resultBadge);
+      };
+      imgWrap.appendChild(img);
+
+      const badge = document.createElement('div');
+      badge.className = 'q-badge';
+      badge.style.background = q.accent;
+      badge.textContent = 'Question ' + (idx + 1);
+      imgWrap.appendChild(badge);
+
+      const resultBadge = document.createElement('div');
+      resultBadge.className = 'q-result-badge';
+      resultBadge.id = 'result-badge-' + q.id;
+      imgWrap.appendChild(resultBadge);
+
+      card.appendChild(imgWrap);
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'q-body';
+
+      const text = document.createElement('p');
+      text.className = 'q-text';
+      text.textContent = q.scenario;
+      body.appendChild(text);
+
+      // Options
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options';
+
+      OPTIONS.forEach(opt => {
+        const row = document.createElement('div');
+        row.className = 'option';
+        row.id = 'opt-' + q.id + '-' + opt.replace(/\s/g, '_');
+        row.onclick = () => selectAnswer(q.id, opt, q.accent);
+
+        const radio = document.createElement('div');
+        radio.className = 'radio';
+        radio.id = 'radio-' + q.id + '-' + opt.replace(/\s/g, '_');
+        radio.style.borderColor = '#dadce0';
+
+        const dot = document.createElement('div');
+        dot.className = 'radio-dot';
+        radio.appendChild(dot);
+
+        const label = document.createElement('span');
+        label.className = 'opt-label';
+        label.id = 'label-' + q.id + '-' + opt.replace(/\s/g, '_');
+        label.textContent = opt;
+
+        row.appendChild(radio);
+        row.appendChild(label);
+        optionsDiv.appendChild(row);
+      });
+
+      body.appendChild(optionsDiv);
+
+      const hint = document.createElement('div');
+      hint.className = 'correct-hint';
+      hint.id = 'hint-' + q.id;
+      body.appendChild(hint);
+
+      card.appendChild(body);
+      container.appendChild(card);
+    });
+  }
+
+  function selectAnswer(qId, opt, accent) {
+    if (submitted) return;
+
+    // Deselect previous
+    if (answers[qId]) {
+      const prev = answers[qId].replace(/\s/g, '_');
+      const prevRow = document.getElementById('opt-' + qId + '-' + prev);
+      const prevRadio = document.getElementById('radio-' + qId + '-' + prev);
+      if (prevRow) prevRow.classList.remove('selected');
+      if (prevRadio) { prevRadio.style.background = 'white'; prevRadio.style.borderColor = '#dadce0'; }
+    }
+
+    answers[qId] = opt;
+
+    const key = opt.replace(/\s/g, '_');
+    const row = document.getElementById('opt-' + qId + '-' + key);
+    const radio = document.getElementById('radio-' + qId + '-' + key);
+    if (row) row.classList.add('selected');
+    if (radio) { radio.style.background = accent; radio.style.borderColor = accent; }
+
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const count = Object.keys(answers).length;
+    document.getElementById('progressLabel').textContent = count + ' of 6 answered';
+  }
+
+  function submitQuiz() {
+    if (Object.keys(answers).length < QUESTIONS.length) {
+      alert('Please answer all 6 questions before submitting!');
+      return;
+    }
+    submitted = true;
+
+    let score = 0;
+
+    QUESTIONS.forEach(q => {
+      const selected = answers[q.id];
+      const isCorrect = selected === q.answer;
+      if (isCorrect) score++;
+
+      const card = document.getElementById('card-' + q.id);
+      card.classList.add(isCorrect ? 'correct' : 'wrong');
+
+      const resultBadge = document.getElementById('result-badge-' + q.id);
+      resultBadge.style.display = 'block';
+      resultBadge.textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+      resultBadge.style.background = isCorrect ? '#4CAF50' : '#E91E63';
+
+      OPTIONS.forEach(opt => {
+        const key = opt.replace(/\s/g, '_');
+        const row = document.getElementById('opt-' + q.id + '-' + key);
+        const label = document.getElementById('label-' + q.id + '-' + key);
+        if (!row) return;
+
+        row.style.cursor = 'default';
+        row.onclick = null;
+
+        if (opt === q.answer) {
+          row.classList.add('correct-ans');
+          label.textContent = opt + ' ✓';
+        } else if (opt === selected && !isCorrect) {
+          row.classList.add('wrong-ans');
+        }
+      });
+
+      if (!isCorrect) {
+        const hint = document.getElementById('hint-' + q.id);
+        hint.style.display = 'block';
+        hint.innerHTML = '✅ Correct answer: <strong>' + q.answer + '</strong>';
+      }
+    });
+
+    // Score banner
+    const banner = document.getElementById('scoreBanner');
+    banner.style.display = 'block';
+    if (score === 6) {
+      banner.style.background = '#e8f5e9';
+      banner.style.border = '1px solid #4CAF50';
+      banner.style.color = '#2e7d32';
+      banner.textContent = '🎉 Perfect score! You got 6 out of 6 correct.';
+    } else if (score >= 4) {
+      banner.style.background = '#fff8e1';
+      banner.style.border = '1px solid #FF9800';
+      banner.style.color = '#e65100';
+      banner.textContent = '👍 Nice work! You got ' + score + ' out of 6 correct.';
+    } else {
+      banner.style.background = '#fce4ec';
+      banner.style.border = '1px solid #E91E63';
+      banner.style.color = '#c62828';
+      banner.textContent = '💪 Keep practicing! You got ' + score + ' out of 6 correct.';
+    }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    document.getElementById('btnSubmit').style.display = 'none';
+    document.getElementById('btnReset').style.display = 'inline-block';
+    document.getElementById('progressLabel').textContent = 'Score: ' + score + ' / 6';
+  }
+
+  function resetQuiz() {
+    Object.keys(answers).forEach(k => delete answers[k]);
+    submitted = false;
+    document.getElementById('scoreBanner').style.display = 'none';
+    document.getElementById('btnSubmit').style.display = 'inline-block';
+    document.getElementById('btnReset').style.display = 'none';
+    document.getElementById('progressLabel').textContent = '0 of 6 answered';
+    buildQuestions();
+  }
+
+  // Init
+  buildQuestions();
+</script>
+</body>
+</html>

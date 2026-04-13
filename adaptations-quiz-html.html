@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Animal Adaptations Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Segoe UI', sans-serif;
+    padding: 24px 16px;
+  }
+  .card {
+    max-width: 680px;
+    margin: 0 auto 16px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 2px solid transparent;
+    transition: border 0.3s, box-shadow 0.3s;
+  }
+  .card.correct { border-color: #4CAF50; box-shadow: 0 2px 8px rgba(76,175,80,0.4); }
+  .card.wrong   { border-color: #E91E63; box-shadow: 0 2px 8px rgba(233,30,99,0.3); }
+
+  /* Header card */
+  #header-card { border-top: 10px solid #4CAF50; }
+  #header-card .body { padding: 28px 32px; }
+  .eyebrow { font-size: 13px; color: #5f6368; font-weight: 500; margin-bottom: 6px; }
+  h1 { font-size: 28px; font-weight: 700; color: #202124; margin-bottom: 8px; }
+  .subtitle { color: #5f6368; font-size: 15px; }
+  #score-box {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  /* Image area */
+  .img-area {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .img-area img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+  .img-area .emoji-fallback { font-size: 72px; opacity: 0.7; display: none; }
+  .badge {
+    position: absolute;
+    top: 12px;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+  .badge.num { left: 12px; }
+  .badge.result { right: 12px; display: none; }
+
+  /* Body */
+  .q-body { padding: 20px 24px 24px; }
+  .scenario { font-size: 16px; font-weight: 500; color: #202124; line-height: 1.5; margin-bottom: 20px; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid #dadce0;
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    font-size: 15px;
+    color: #202124;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+  }
+  .opt .radio {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid #dadce0;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .opt .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: white;
+    display: none;
+  }
+  .opt.selected .dot { display: block; }
+  .opt.answer-correct { background: #e8f5e9; border-color: #4CAF50; color: #2e7d32; font-weight: 600; }
+  .opt.answer-wrong   { background: #fce4ec; border-color: #E91E63; color: #c62828; }
+  .correct-hint {
+    display: none;
+    margin-top: 12px;
+    padding: 8px 14px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2e7d32;
+    font-weight: 500;
+  }
+
+  /* Bottom bar */
+  #bottom-bar {
+    max-width: 680px;
+    margin: 0 auto 32px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    font-family: inherit;
+  }
+  #submit-btn { background: #4CAF50; color: white; box-shadow: 0 2px 8px rgba(76,175,80,0.4); }
+  #reset-btn  { background: white; color: #4CAF50; border: 2px solid #4CAF50; display: none; }
+  #progress   { color: rgba(255,255,255,0.85); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="card" id="header-card">
+  <div class="body">
+    <div class="eyebrow">🌿 Science · Animal Adaptations</div>
+    <h1>Animal Adaptations Quiz</h1>
+    <p class="subtitle">Match each scenario to the correct adaptation term. Choose the best answer for each question.</p>
+    <div id="score-box"></div>
+  </div>
+</div>
+
+<!-- Questions injected here -->
+<div id="questions"></div>
+
+<!-- Bottom bar -->
+<div id="bottom-bar">
+  <button class="btn" id="submit-btn" onclick="submitQuiz()">Submit Quiz</button>
+  <button class="btn" id="reset-btn"  onclick="resetQuiz()">Try Again 🔄</button>
+  <span id="progress">0 of 6 answered</span>
+</div>
+
+<script>
+const QUESTIONS = [
+  { id:1, scenario:"Bears adapt to the cold winter climate by sleeping more.", emoji:"🐻", bg:"#e8f4fd", accent:"#2196F3", image:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Ours_brun_parcanimalierpyrenees_1.jpg/320px-Ours_brun_parcanimalierpyrenees_1.jpg", answer:"Hibernate" },
+  { id:2, scenario:"Birds fly south for the winter.", emoji:"🐦", bg:"#fff8e1", accent:"#FF9800", image:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/CanadaGoose_migrating.jpg/320px-CanadaGoose_migrating.jpg", answer:"Migrate" },
+  { id:3, scenario:"The king snake tricks its enemies by looking like the deadly coral snake.", emoji:"🐍", bg:"#fce4ec", accent:"#E91E63", image:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Eastern_Kingsnake_2.jpg/320px-Eastern_Kingsnake_2.jpg", answer:"Mimicry" },
+  { id:4, scenario:"The snow hare blends in with its surroundings.", emoji:"🐇", bg:"#e8f5e9", accent:"#4CAF50", image:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Lepus_americanus_5459_cropped.jpg/320px-Lepus_americanus_5459_cropped.jpg", answer:"Camouflage" },
+  { id:5, scenario:"Changes in an animal's habitat are usually the cause for this.", emoji:"🌍", bg:"#f3e5f5", accent:"#9C27B0", image:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Rainforest_Fatu_Hiva.jpg/320px-Rainforest_Fatu_Hiva.jpg", answer:"Adaptation" },
+  { id:6, scenario:"Desert plants store water in their stems and leaves.", emoji:"🌵", bg:"#fff3e0", accent:"#FF5722", image:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Cactus_-_Arizona.jpg/320px-Cactus_-_Arizona.jpg", answer:"Structural Adaptation" },
+];
+const OPTIONS = ["Hibernate","Adaptation","Mimicry","Migrate","Camouflage","Structural Adaptation"];
+const answers = {};
+let submitted = false;
+
+function buildQuiz() {
+  const container = document.getElementById('questions');
+  container.innerHTML = '';
+  QUESTIONS.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'card-' + q.id;
+    card.innerHTML = `
+      <div class="img-area" style="background:${q.bg}">
+        <img src="${q.image}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="emoji-fallback">${q.emoji}</div>
+        <div class="badge num" style="background:${q.accent}">Question ${idx+1}</div>
+        <div class="badge result" id="result-badge-${q.id}"></div>
+      </div>
+      <div class="q-body">
+        <p class="scenario">${q.scenario}</p>
+        <div class="options" id="opts-${q.id}">
+          ${OPTIONS.map(opt => `
+            <button class="opt" id="opt-${q.id}-${opt.replace(/\s/g,'_')}"
+              onclick="selectAnswer(${q.id},'${opt}','${q.accent}')"
+              style="">
+              <div class="radio" id="radio-${q.id}-${opt.replace(/\s/g,'_')}">
+                <div class="dot"></div>
+              </div>
+              <span>${opt}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="correct-hint" id="hint-${q.id}"></div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function selectAnswer(qId, opt, accent) {
+  if (submitted) return;
+  const prev = answers[qId];
+  if (prev) {
+    const prevEl = document.getElementById('opt-' + qId + '-' + prev.replace(/\s/g,'_'));
+    const prevRadio = document.getElementById('radio-' + qId + '-' + prev.replace(/\s/g,'_'));
+    if (prevEl) { prevEl.style.background='white'; prevEl.style.borderColor='#dadce0'; prevEl.style.color='#202124'; prevEl.classList.remove('selected'); }
+    if (prevRadio) { prevRadio.style.background='white'; prevRadio.style.borderColor='#dadce0'; }
+  }
+  answers[qId] = opt;
+  const el = document.getElementById('opt-' + qId + '-' + opt.replace(/\s/g,'_'));
+  const radio = document.getElementById('radio-' + qId + '-' + opt.replace(/\s/g,'_'));
+  if (el) { el.style.background='#e8f0fe'; el.style.borderColor=accent; el.style.color=accent; el.style.fontWeight='600'; el.classList.add('selected'); }
+  if (radio) { radio.style.background=accent; radio.style.borderColor=accent; }
+  updateProgress();
+}
+
+function updateProgress() {
+  document.getElementById('progress').textContent = Object.keys(answers).length + ' of 6 answered';
+}
+
+function submitQuiz() {
+  if (Object.keys(answers).length < QUESTIONS.length) {
+    alert('Please answer all questions before submitting!');
+    return;
+  }
+  submitted = true;
+  let score = 0;
+  QUESTIONS.forEach(q => {
+    const sel = answers[q.id];
+    const isCorrect = sel === q.answer;
+    if (isCorrect) score++;
+    const card = document.getElementById('card-' + q.id);
+    card.classList.add(isCorrect ? 'correct' : 'wrong');
+    const badge = document.getElementById('result-badge-' + q.id);
+    badge.style.display = 'block';
+    badge.style.background = isCorrect ? '#4CAF50' : '#E91E63';
+    badge.textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+    OPTIONS.forEach(opt => {
+      const el = document.getElementById('opt-' + q.id + '-' + opt.replace(/\s/g,'_'));
+      if (!el) return;
+      el.style.background='white'; el.style.borderColor='#dadce0'; el.style.color='#202124'; el.style.fontWeight='400';
+      el.classList.remove('selected');
+      if (opt === q.answer) { el.style.background='#e8f5e9'; el.style.borderColor='#4CAF50'; el.style.color='#2e7d32'; el.style.fontWeight='600'; el.querySelector('span').textContent = opt + ' ✓'; }
+      else if (opt === sel) { el.style.background='#fce4ec'; el.style.borderColor='#E91E63'; el.style.color='#c62828'; }
+    });
+    if (!isCorrect) {
+      const hint = document.getElementById('hint-' + q.id);
+      hint.style.display = 'block';
+      hint.innerHTML = '✅ Correct answer: <strong>' + q.answer + '</strong>';
+    }
+  });
+  const box = document.getElementById('score-box');
+  box.style.display = 'block';
+  if (score === 6) { box.style.background='#e8f5e9'; box.style.border='1px solid #4CAF50'; box.style.color='#2e7d32'; box.textContent='🎉 Perfect score! You got 6 out of 6 correct.'; }
+  else if (score >= 4) { box.style.background='#fff8e1'; box.style.border='1px solid #FF9800'; box.style.color='#e65100'; box.textContent='👍 Nice work! You got ' + score + ' out of 6 correct.'; }
+  else { box.style.background='#fce4ec'; box.style.border='1px solid #E91E63'; box.style.color='#c62828'; box.textContent='💪 Keep practicing! You got ' + score + ' out of 6 correct.'; }
+  document.getElementById('submit-btn').style.display = 'none';
+  document.getElementById('reset-btn').style.display = 'inline-block';
+  document.getElementById('score-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetQuiz() {
+  Object.keys(answers).forEach(k => delete answers[k]);
+  submitted = false;
+  document.getElementById('submit-btn').style.display = 'inline-block';
+  document.getElementById('reset-btn').style.display = 'none';
+  document.getElementById('score-box').style.display = 'none';
+  updateProgress();
+  buildQuiz();
+}
+
+buildQuiz();
+updateProgress();
+</script>
+</body>
+</html>
